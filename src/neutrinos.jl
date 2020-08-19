@@ -22,21 +22,20 @@ const deltaMSquared = 7.5E-17;
 """
 The energy of the neutrinos in MeV
 """
-const energy = 10;
+const energy = 10.0;
 
 """
 This function computes the matter mixing angle (theta_m) based on the vacuum mixing angle (theta) and the coupling strength (chi).
 """
 function getMatterMixingAngle(vacuumMixingAngle, couplingStrength)
 
-    # Note that the vacuum mixing angle is scaled in matter, c.f. section 3 in the paper, by a scaling factor f related to the eigenvalues. FIXME!
-    f = 1.0/((cos(2.0*vacuumMixingAngle) - couplingStrength)^2.0 - sin(2.0*vacuumMixingAngle)^2.0);
-#    println(f);
-#   twoTheta = 2.0*vacuumMixingAngle;
-    tanTwoTheta = tan(twoTheta);
-#    cosTwoTheta = cos(twoTheta);
-#    chiByCosTwoTheta = couplingStrength/cosTwoTheta;
-    matterMixingAngle = 0.5*asin(sin(2.0*vacuumMixingAngle)*f);
+    twoTheta = 2.0*vacuumMixingAngle;
+    cosTwoTheta = cos(twoTheta);
+    matterMixingAngle = 0.5*atan(sin(twoTheta)/(cos(twoTheta) - couplingStrength));
+    scalingFactor = getScalingFactor(vacuumMixingAngle,couplingStrength);
+    println("2T = $twoTheta, chi = $couplingStrength, cosT2M = $cosTwoTheta, theta_m = $matterMixingAngle, scalingFactor = $scalingFactor");
+
+    matterMixingAngle = 0.5*asin(sin(twoTheta)/scalingFactor);
 
     return matterMixingAngle;
 end
@@ -73,7 +72,7 @@ function getElectronNeutrinoProbability(radiusFraction, theta)
     println("$electronNumberDensity, $couplingStrength, $matterMixingAngle");
 
     # Compute the probability
-    probability = 0.5*(1.0 + cos(2.0*theta) * cos(2.0*matterMixingAngle));
+    probability = 0.5*(1.0 + (cos(2.0*theta) * cos(2.0*matterMixingAngle)));
 
     return probability;
 end
@@ -84,6 +83,13 @@ This function computes the probability of a neutrino to be in the muon neutrino 
 function getMuonNeutrinoProbability(radiusFraction, mixingAngle)
     # This is just the opposite of the electron neutrino probability.
     return 1.0 - getElectronNeutrinoProbability(radiusFraction, mixingAngle);
+end
+
+"""
+This function returns the scaling factor f(theta,chi) for oscillations in matter where theta is the vacuum mixing angle and chi is the coupling strength.
+"""
+function getScalingFactor(theta, couplingStrength)
+    return sqrt(1.0-2.0*couplingStrength*cos(2.0*theta) + couplingStrength*couplingStrength);
 end
 
 """
@@ -99,6 +105,34 @@ function plotElectronNumberDensity()
     layout = Layout(;title="Electron Number Density");
     plot(xValues,yValues,layout);
 
+end
+
+"""
+This function plots the scaling factor f(theta,chi).
+"""
+function plotScalingFactor(theta)
+    n = 400;
+    xValues = 0.0:0.01:n;
+    yValues = Array{Float32}(undef,n);
+    for i = 1:n
+        yValues[i] = getMatterMixingAngle(theta, xValues[i]);
+    end
+    layout = Layout(;title="Scaling Factor");
+    plot(xValues,yValues,layout);
+end
+
+"""
+This function plots the matter mixing angle as function of vacuum mixing angle and coupling strength.
+"""
+function plotMatterMixingAngle(theta)
+    n = 400;
+    xValues = 0.0:0.01:n;
+    yValues = Array{Float32}(undef,n);
+    for i = 1:n
+        yValues[i] = (xValues[i] > 1.0)  ? getMatterMixingAngle(theta, xValues[i]) : pi/2.0 - getMatterMixingAngle(theta, xValues[i]);
+    end
+    layout = Layout(;title="Matter Mixing Angle");
+    plot(xValues,yValues,layout);
 end
 
 function plotCouplingStrength()
