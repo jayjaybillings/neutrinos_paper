@@ -23,7 +23,16 @@ include("src/neutrinos.jl")
 Pkg.test("neutrinos")
 ```
 
-The code can now be run by directly calling functions. For example, to show the energy of the neutrinos, type:
+# Example usage
+The neutrinos package can be used in the Julia Read-Eval-Print Loop (REPL) like any other package. For example, to show the energy of the neutrinos, type:
 ```julia
 neutrinos.energy
 ```
+
+If you plan to modify the package, you should consider executing "Pkg.add("Revise")" and "using Revise" after step 4 in the Quickstart section.
+
+# Atom and Uber-Juno notes
+
+The defaults in Atom appear to set for dev heathens whose mothers fed them little more than hard tack and water. Here are some tips.
+
+Hit Ctrl+, on Linux to open up settings. Go to the Editor section. Set "Preferred Line Length" to your preferred value. 80 is the default. Then check the box next to "Soft wrap at preferred line length."
