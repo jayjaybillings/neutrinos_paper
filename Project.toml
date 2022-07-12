@@ -1,6 +1,6 @@
 name = "neutrinos"
 uuid = "a1b34714-9947-11ea-10ac-dbb1152288f1"
-authors = ["Jay Jay Billings <billingsjj@ornl.gov>"]
+authors = ["Jay Jay Billings <jjbillin@amazon.com>"]
 version = "0.1.0"
 
 [deps]
