@@ -27,7 +27,7 @@ set samples 1000
 
 set pointsize 0.5    # Size of the plotted points
 
-# Line styles.  
+# Line styles.
 # For lines: plot x with lines ls 1
 # For points: plot x with points ls 1
 
@@ -103,7 +103,7 @@ rcrit = -(1/alph)*log(neR/aa)
 
 L = 2.48*E/dm2
 
-# Matter mixing angle 
+# Matter mixing angle
 
 C = cos(2*tv)
 S = sin(2*tv)
@@ -178,38 +178,38 @@ ds2=gprintf("dE2=%g",dm2).gprintf(" eV^2 E=%g",E)." MeV"
 
 set title ds.ds2 textcolor rgb title_color font "Arial,10"
 
-set xrange [0.6:0.0] 
+set xrange [0.6:0.0]
 set yrange[0:1.0]
 
 # Plots versus x = R/R0
 
 # theta matter versus R/R0
 
-#plot tm(x)*radcon/100 ls 2
+plot tm(x)*radcon/100 ls 2
 
 # Probabilility to be electron neutrino versus R/R0,
 # Assuming the neutrino created at center as electron flavor
 
-plot Pe(x) ls 1
+#plot Pe(x) ls 1
 
-# Probability to be a muon neutrino 
+# Probability to be a muon neutrino
 
-replot Pmu(x) ls 4
+#replot Pmu(x) ls 4
 
-set title ds.ds2 textcolor rgb title_color font "Arial,24"
-set key top right font "Arial,24"
- 
+#set title ds.ds2 textcolor rgb title_color font "Arial,24"
+#set key top right font "Arial,24"
+
 # Plot to postscript file
 
-set out "flavorVsR.eps"    # Output file
-set terminal postscript eps size width, height enhanced color solid lw 2 "Arial" 32
-replot               # Plot to postscript file
+#set out "flavorVsR.eps"    # Output file
+#set terminal postscript eps size width, height enhanced color solid lw 2 "Arial" 32
+#replot               # Plot to postscript file
 
 # Plot to PNG file
 
-set out "flavorVsR.png"
+#set out "flavorVsR.png"
 # Assume 72 pixels/inch and make bitmap twice as large for display resolution
-set terminal png transparent size 2*width*72, 2*height*72 lw 2 enhanced font 'Arial,28'
-replot
+#set terminal png transparent size 2*width*72, 2*height*72 lw 2 enhanced font 'Arial,28'
+#replot
 
 quit

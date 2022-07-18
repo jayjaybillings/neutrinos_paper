@@ -7,7 +7,13 @@ https://arxiv.org/abs/1812.00035
 module neutrinos
 
 # Include plotting support
-using PlotlyJS
+#using PlotlyJS
+using Reexport
+
+# Include auxillary files and handle exports
+include("electrons.jl")
+import .electrons: getElectronNumberDensity
+@reexport using .electrons
 
 """
 Fermi's weak coupling constant in MeV cm^2
@@ -24,6 +30,17 @@ The energy of the neutrinos in MeV
 """
 const energy = 10.0
 
+function julia_main()::Cint
+  try
+      println("Hello World from Julia app!")
+  catch
+      Base.invokelatest(Base.display_error, Base.catch_stack())
+      return 1
+  end
+
+  return 0
+end
+
 """
 This function computes the matter mixing angle (theta_m) based on the vacuum mixing angle (theta) and the coupling strength (chi).
 """
@@ -34,9 +51,6 @@ function getMatterMixingAngle(vacuumMixingAngle, couplingStrength)
     matterMixingAngle =
         0.5 * atan(sin(twoTheta) / (cos(twoTheta) - couplingStrength))
     scalingFactor = getScalingFactor(vacuumMixingAngle, couplingStrength)
-    println(
-        "2T = $twoTheta, chi = $couplingStrength, cosT2M = $cosTwoTheta, theta_m = $matterMixingAngle, scalingFactor = $scalingFactor",
-    )
 
     matterMixingAngle = 0.5 * asin(sin(twoTheta) / scalingFactor)
 
@@ -53,13 +67,6 @@ function getCouplingStrength(energy, e_number_density)
     coupling_strength = k * e_number_density
 
     return coupling_strength
-end
-
-"""
-This function computes the electron number density as a function of the radial fraction, R/R_sun.
-"""
-function getElectronNumberDensity(radiusFraction)
-    return 1.475E26 * exp(-10.54 * radiusFraction)
 end
 
 """
@@ -109,8 +116,8 @@ function plotElectronNumberDensity()
     for i = 1:n
         yValues[i] = log10(getElectronNumberDensity(xValues[i]))
     end
-    layout = Layout(; title = "Electron Number Density")
-    plot(xValues, yValues, layout)
+#    layout = Layout(; title = "Electron Number Density")
+#    plot(xValues, yValues, layout)
 
 end
 
@@ -124,24 +131,26 @@ function plotScalingFactor(theta)
     for i = 1:n
         yValues[i] = getMatterMixingAngle(theta, xValues[i])
     end
-    layout = Layout(; title = "Scaling Factor")
-    plot(xValues, yValues, layout)
+#    layout = Layout(; title = "Scaling Factor")
+#    plot(xValues, yValues, layout)
 end
 
 """
 This function plots the matter mixing angle as function of vacuum mixing angle and coupling strength.
 """
 function plotMatterMixingAngle(theta)
-    n = 1000
+    n = 10
     xValues = collect(range(0.01,0.6,n))
     yValues = Array{Float32}(undef, n)
     for i = 1:n
         yValues[i] =
             (xValues[i] > 1.0) ? getMatterMixingAngle(theta, xValues[i]) :
             pi / 2.0 - getMatterMixingAngle(theta, xValues[i])
+
+        print(i,",",xValues[i],",",yValues[i],"\n")
     end
-    layout = Layout(; title = "Matter Mixing Angle")
-    plot(xValues, yValues, layout)
+#    layout = Layout(; title = "Matter Mixing Angle")
+#    plot(xValues, yValues, layout)
 end
 
 """
@@ -189,7 +198,7 @@ function plotMatterMixingAngleLikeGnuplot()
     S = sin(2.0 * tv)
 
     # Make vector, not matrix
-    n = 1000
+    n = 10
     x = collect(range(0.01,0.6,n));
     thetam = zeros(n)
     # Main loop
@@ -204,13 +213,13 @@ function plotMatterMixingAngleLikeGnuplot()
         # Matter mixing angle in radians
         thetam[i] = 0.5 * asin(sin2tm)
         # Evaluate matter angle in correct angle sector for x=R/R0
-        thetam[i] = (xi > rcrit) ? thetam[i] : pi / 2 - thetam[i]  # Below and above resonance
+        thetam[i] = (radcon/100.0)*((xi > rcrit) ? thetam[i] : pi / 2 - thetam[i])  # Below and above resonance
         print(i,",",xi,",",thetam[i],"\n")
         i += 1
     end
 
-    layout = Layout(; title = "Matter Mixing Angle Like Gnuplot")
-    plot(x, thetam, layout)
+#    layout = Layout(; title = "Matter Mixing Angle Like Gnuplot")
+#    plot(x, thetam, layout)
 
 end
 

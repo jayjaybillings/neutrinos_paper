@@ -1,6 +1,8 @@
 using neutrinos
 using Test
 
+include("runtests_electrons.jl")
+
 @testset "neutrinos.jl" begin
 
     #----- Basic tests for computing the matter mixing angle
@@ -58,15 +60,9 @@ using Test
     # For chi = 1.0, theta = 4.0pi/6.0, f = sqrt(3.0)
     @test isapprox(sqrt(3.0),neutrinos.getScalingFactor(4.0*pi/6.0,1.0);atol=1.0e-8)
 
-    #----- Basic tests for the electron number density
-    # This simple test checks behavior when R/R_sun = 0.0, which sets the exponent to zero and the result is the coefficient, 1.475E26.
-    @test isapprox(1.475E26, neutrinos.getElectronNumberDensity(0.0),atol=1.0e-5);
-    # Similar to the above, but in the case where the radius is equal to the solar radius and the fraction is 1.0, then the result is 1.475E26*exp(-10.54).
-    @test isapprox(1.475E26*exp(-10.54), neutrinos.getElectronNumberDensity(1.0), atol=1.0e-5);
-
     #----- Basic tests for the electron neutrino probability
     # For r/R = theta = 0.0, P = 1.0.
     @test 1.0 == neutrinos.getElectronNeutrinoProbability(0.0,0.0);
     #@test 0.5 == #neutrinos.getElectronNeutrinoProbability();
     # This is the example from Guidry's stars book (ADD DEETS!)
-end
+end #testset
