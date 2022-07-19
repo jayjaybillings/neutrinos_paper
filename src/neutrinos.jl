@@ -113,18 +113,20 @@ function getScalingFactor(theta, couplingStrength)
 end
 
 """
-This function plots the electron number density as a function of the the radial fraction, R/R_sun.
+This function plots the electron number density as a function of the the radial fraction, R/R_sun, in a log plot (y-axis only).
 """
 function plotElectronNumberDensity()
     n = 100
     plotData = plots.make1DPlotData(n)
     for i = 1:n
-        plotData.xValues[i] = 0.0001*i
-        plotData.yValues[i] = log10(electrons.getElectronNumberDensity(plotData.xValues[i]))
+        plotData.x[i] = 0.0001*i
+        plotData.fx[i] = log10(electrons.getElectronNumberDensity(plotData.x[i]))
     end
-#    layout = Layout(; title = "Electron Number Density")
-#    plot(xValues, yValues, layout)
-
+    plotData.title = "Electron Number Density"
+    plotData.xLabel = "Radius Fraction"
+    plotData.fxLabel = "n_e"
+    plotData.lineWidth = 2
+    plots.plot(plotData)
 end
 
 """
