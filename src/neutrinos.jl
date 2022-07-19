@@ -117,10 +117,10 @@ This function plots the electron number density as a function of the the radial 
 """
 function plotElectronNumberDensity()
     n = 100
-    xValues = 0.0:0.01:n
-    yValues = Array{Float32}(undef, n)
+    plotData = plots.make1DPlotData(n)
     for i = 1:n
-        yValues[i] = log10(getElectronNumberDensity(xValues[i]))
+        plotData.xValues[i] = 0.0001*i
+        plotData.yValues[i] = log10(electrons.getElectronNumberDensity(plotData.xValues[i]))
     end
 #    layout = Layout(; title = "Electron Number Density")
 #    plot(xValues, yValues, layout)
