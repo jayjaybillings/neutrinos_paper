@@ -7,13 +7,19 @@ https://arxiv.org/abs/1812.00035
 module neutrinos
 
 # Include plotting support
-#using PlotlyJS
+
+# Reexport allows us to re-export submodules like electrons and plotting
 using Reexport
 
-# Include auxillary files and handle exports
+# Include auxillary electron functions
 include("electrons.jl")
-import .electrons: getElectronNumberDensity
+#import .electrons: getElectronNumberDensity
+import .electrons
 @reexport using .electrons
+
+# Include plotting
+include("plots.jl")
+@reexport using .plots
 
 """
 Fermi's weak coupling constant in MeV cm^2

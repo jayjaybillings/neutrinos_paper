@@ -36,3 +36,7 @@ If you plan to modify the package, you should consider executing "Pkg.add("Revis
 The defaults in Atom appear to set for dev heathens whose mothers fed them little more than hard tack and water. Here are some tips.
 
 Hit Ctrl+, on Linux to open up settings. Go to the Editor section. Set "Preferred Line Length" to your preferred value. 80 is the default. Then check the box next to "Soft wrap at preferred line length."
+
+# Tricky bits
+
+Calling Pkg.add(...) before calling Pkg.activate(".") installs the package in REPL. Calling Pkg.add(...) after calling Pkg.activate(".") adds it as a dependency in Project.toml.
