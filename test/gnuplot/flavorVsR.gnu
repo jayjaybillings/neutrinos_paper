@@ -175,11 +175,25 @@ print d11
 ds=gprintf("tv=%g",theta_v)." deg; "
 ds=ds.gprintf("L=%g",L/1000)." km "
 ds2=gprintf("dE2=%g",dm2).gprintf(" eV^2 E=%g",E)." MeV"
-
 set title ds.ds2 textcolor rgb title_color font "Arial,10"
 
 set xrange [0.6:0.0]
 set yrange[0:1.0]
+
+# Plot and print electron number density
+set table "electronNumberDensity.dat"
+plot ne(x)
+unset table
+
+# Plot and print coupling strength
+set table "couplingStrength.dat"
+plot chi(x)
+unset table
+
+# Plot and print the matter mixing angle
+set table "matterMixingAngle.dat"
+plot tm(x)
+unset table
 
 # Plots versus x = R/R0
 

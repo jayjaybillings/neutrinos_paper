@@ -69,7 +69,6 @@ This function computes the coupling strength (chi) from the neutrino energy (E) 
 function getCouplingStrength(energy, e_number_density)
 
     k = ((2.0 * sqrt(2.0) * energy * fermiConst) / deltaMSquared)
-    println("$k")
     coupling_strength = k * e_number_density
 
     return coupling_strength
