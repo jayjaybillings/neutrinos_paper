@@ -110,7 +110,15 @@ S = sin(2*tv)
 
 chi(x) = L/scriptell_m(x)
 
+g(x) = (C-chi(x))**2 +S**2
+
 sin2tm(x) = S/sqrt( (C-chi(x))**2 +S**2 )
+
+gxC=gprintf("2tv=%g",2*tv).gprintf(" cos2tv=%g",C).gprintf(" sin2tv=%g",S)\
+.gprintf(" innerTerm=%g",sqrt( (C-chi(0.01))**2 +S**2 ))\
+.gprintf(" chi(0.01)=%g",chi(0.01))\
+.gprintf(" sin2tm(0.01)=%g",sin2tm(0.01))
+print gxC
 
 # Matter mixing angle in radians
 
@@ -188,6 +196,16 @@ unset table
 # Plot and print coupling strength
 set table "couplingStrength.dat"
 plot chi(x)
+unset table
+
+# Plot and print g(x) "inner term"
+set table "gx_innerTerm.dat"
+plot g(x)
+unset table
+
+# Plot and print sin(2*theta_m)
+set table "sin2tm.dat"
+plot sin2tm(x)
 unset table
 
 # Plot and print the matter mixing angle

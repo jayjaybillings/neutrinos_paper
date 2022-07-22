@@ -11,15 +11,15 @@ module neutrinos
 # Reexport allows us to re-export submodules like electrons and plotting
 using Reexport
 
+# Include plotting
+include("plots.jl")
+@reexport using .plots
+
 # Include auxillary electron functions
 include("electrons.jl")
 #import .electrons: getElectronNumberDensity
 import .electrons
 @reexport using .electrons
-
-# Include plotting
-include("plots.jl")
-@reexport using .plots
 
 """
 Fermi's weak coupling constant in MeV cm^2
@@ -29,7 +29,7 @@ const fermiConst = 8.955E-44
 """
 The difference in neutrino masses of types one and two in MeV^2
 """
-const deltaMSquared = 7.5E-17
+const deltaMSquared = 7.6E-17
 
 """
 The energy of the neutrinos in MeV
@@ -48,19 +48,25 @@ function julia_main()::Cint
 end
 
 """
-This function computes the matter mixing angle (theta_m) based on the vacuum mixing angle (theta) and the coupling strength (chi).
+This function computes the matter mixing angle (theta_m) based on the vacuum mixing angle (theta), the coupling strength (chi), and the radius (x).
 """
-function getMatterMixingAngle(vacuumMixingAngle, couplingStrength)
+function getMatterMixingAngle(theta, chi, x)
 
-    twoTheta = 2.0 * vacuumMixingAngle
+    twoTheta = 2.0 * theta
+    sinTwoTheta = sin(twoTheta)
     cosTwoTheta = cos(twoTheta)
-    matterMixingAngle =
-        0.5 * atan(sin(twoTheta) / (cos(twoTheta) - couplingStrength))
-    scalingFactor = getScalingFactor(vacuumMixingAngle, couplingStrength)
+    innerTerm = ((cosTwoTheta-chi)*(cosTwoTheta-chi)+sinTwoTheta*sinTwoTheta)
+    sin2tm = sinTwoTheta / sqrt(innerTerm)
+    theta_m = 0.5 * asin(sin2tm)
+    # Account for the defintion of the mixing angle within as always being less
+    # than pi/4 and its relationship to the critical radius.
+    alpha = electrons.defaultDecayConstant
+    aa = electrons.maxN_e
+    neR = ((cosTwoTheta*neutrinos.deltaMSquared/neutrinos.energy)*(1.0/(2.0*sqrt(2.0)*neutrinos.fermiConst)))
+    rCrit = (-1.0/alpha)*log(neR/aa)
+    theta_m = (x > rCrit) ? theta_m : ((pi / 2.0) - theta_m)
 
-    matterMixingAngle = 0.5 * asin(sin(twoTheta) / scalingFactor)
-
-    return matterMixingAngle
+    return theta_m
 end
 
 """
@@ -79,12 +85,11 @@ This function computes the probability of a neutrino to be in the electron neutr
 """
 function getElectronNeutrinoProbability(radiusFraction, theta)
     # Compute the number density
-    electronNumberDensity = getElectronNumberDensity(radiusFraction)
+    electronNumberDensity = electrons.getElectronNumberDensity(radiusFraction)
     # Compute the coupling strength
     couplingStrength = getCouplingStrength(energy, electronNumberDensity)
     # Compute the matter mixing angle
     matterMixingAngle = getMatterMixingAngle(theta, couplingStrength)
-    println("$electronNumberDensity, $couplingStrength, $matterMixingAngle")
 
     # Compute the probability
     probability =
@@ -112,6 +117,65 @@ function getScalingFactor(theta, couplingStrength)
 end
 
 """
+This function plots the coupling strength.
+"""
+function plotCouplingStrength()
+    n = 100
+    plotData = plots.make1DPlotData(n)
+    plotData.x = collect(range(0.01,0.6,n))
+    for i = 1:n
+        xi = plotData.x[i]
+        n_e = electrons.getElectronNumberDensity(xi)
+        plotData.fx[i] = getCouplingStrength(neutrinos.energy,n_e)
+        print(xi,",",plotData.fx[i],"\n")
+    end
+    plotData.title = "Coupling Strength"
+    plotData.xLabel = "Radius Fraction"
+    plotData.fxLabel = "Chi"
+    plotData.lineWidth = 2
+    plots.plot(plotData)
+end
+
+"""
+This function plots the scaling factor f(theta,chi).
+"""
+function plotScalingFactor(theta)
+    n = 100
+    plotData = plots.make1DPlotData(n)
+    plotData.x = collect(range(0.01,0.6,n))
+    for i = 1:n
+        xi = plotData.x[i]
+        n_e = electrons.getElectronNumberDensity(xi)
+        coupStrgth = getCouplingStrength(neutrinos.energy,n_e)
+        plotData.fx[i] = getScalingFactor(theta,coupStrgth)
+    end
+    plotData.title = "Scaling Factor"
+    plotData.xLabel = "Radius Fraction"
+    plotData.fxLabel = "f(theta)"
+    plotData.lineWidth = 2
+    plots.plot(plotData)
+end
+
+"""
+This function plots the matter mixing angle as function of vacuum mixing angle and coupling strength.
+"""
+function plotMatterMixingAngle(theta)
+    n = 20
+    plotData = plots.make1DPlotData(n)
+    plotData.x = collect(range(0.01,0.6,n))
+    for i = 1:n
+        n_e = electrons.getElectronNumberDensity(plotData.x[i])
+        chi = getCouplingStrength(neutrinos.energy,n_e)
+        plotData.fx[i] = getMatterMixingAngle(theta,chi,plotData.x[i])
+    end
+    plotData.title = "Matter Mixing Angle"
+    plotData.xLabel = "Radius Fraction"
+    plotData.fxLabel = "theta_m"
+    plotData.lineWidth = 2
+    plots.plot(plotData)
+end
+
+"""
 This function plots the electron number density as a function of the the radial fraction, R/R_sun, in a log plot (y-axis only).
 """
 function plotElectronNumberDensity()
@@ -126,38 +190,6 @@ function plotElectronNumberDensity()
     plotData.fxLabel = "n_e"
     plotData.lineWidth = 2
     plots.plot(plotData)
-end
-
-"""
-This function plots the scaling factor f(theta,chi).
-"""
-function plotScalingFactor(theta)
-    n = 400
-    xValues = 0.0:0.01:n
-    yValues = Array{Float32}(undef, n)
-    for i = 1:n
-        yValues[i] = getMatterMixingAngle(theta, xValues[i])
-    end
-#    layout = Layout(; title = "Scaling Factor")
-#    plot(xValues, yValues, layout)
-end
-
-"""
-This function plots the matter mixing angle as function of vacuum mixing angle and coupling strength.
-"""
-function plotMatterMixingAngle(theta)
-    n = 10
-    xValues = collect(range(0.01,0.6,n))
-    yValues = Array{Float32}(undef, n)
-    for i = 1:n
-        yValues[i] =
-            (xValues[i] > 1.0) ? getMatterMixingAngle(theta, xValues[i]) :
-            pi / 2.0 - getMatterMixingAngle(theta, xValues[i])
-
-        print(i,",",xValues[i],",",yValues[i],"\n")
-    end
-#    layout = Layout(; title = "Matter Mixing Angle")
-#    plot(xValues, yValues, layout)
 end
 
 """
@@ -205,37 +237,32 @@ function plotMatterMixingAngleLikeGnuplot()
     S = sin(2.0 * tv)
 
     # Make vector, not matrix
-    n = 10
-    x = collect(range(0.01,0.6,n));
-    thetam = zeros(n)
+    n = 100
+    plotData = plots.make1DPlotData(n)
+    plotData.x = collect(range(0.01,0.6,n));
     # Main loop
     i = 1;
     for i = 1:n
-        xi = x[i]
+        xi = plotData.x[i]
         ne = aa * exp(-alph * xi)
         scriptell_m = norm / ne
         chi = L/scriptell_m
         sin2tm = S / sqrt((C - chi)^2 + S^2)
 
         # Matter mixing angle in radians
-        thetam[i] = 0.5 * asin(sin2tm)
+        thetam = 0.5 * asin(sin2tm)
         # Evaluate matter angle in correct angle sector for x=R/R0
-        thetam[i] = (radcon/100.0)*((xi > rcrit) ? thetam[i] : pi / 2 - thetam[i])  # Below and above resonance
-        print(i,",",xi,",",thetam[i],"\n")
+        thetam = (radcon/100.0)*((xi > rcrit) ? thetam : pi / 2 - thetam)  # Below and above resonance
+        plotData.fx[i] = thetam
+        print(i,",",xi,",",thetam,"\n")
         i += 1
     end
 
-#    layout = Layout(; title = "Matter Mixing Angle Like Gnuplot")
-#    plot(x, thetam, layout)
-
-end
-
-function plotCouplingStrength()
-
-    values[100]
-    for i = 1:100
-        #values[i] = #getCouplingStrength(i*neutrinos.energy,)
-    end
+    plotData.title = "Matter Mixing Angle - Mike's Gnuplot method"
+    plotData.xLabel = "r/r_0"
+    plotData.fxLabel = "theta_m"
+    plotData.lineWidth = 2
+    plots.plot(plotData)
 
 end
 
